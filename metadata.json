@@ -1,0 +1,6 @@
+{
+  "name": "ZYNIQ Blog",
+  "description": "Futuristic editorial blog platform engineered with Synthetic IQ, real-time editing, SEO optimization, and social media integration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

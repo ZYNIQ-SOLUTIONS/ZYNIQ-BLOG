@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-syne: 'Syne', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* ZYNIQ Core Brand Identity (40% Black, 30% White, 20% Teal Green #34A499, 10% Gray) */
+  --color-zyniq-black: #000000;
+  --color-zyniq-dark: #0A0A0A;
+  --color-zyniq-surface: #141414;
+  --color-zyniq-border: #222222;
+  --color-zyniq-white: #FFFFFF;
+  --color-zyniq-red: #34A499;
+  --color-zyniq-red-hover: #2B8A80;
+  --color-zyniq-gray: #777777;
+  --color-zyniq-gray-muted: #444444;
+
+  /* High-Contrast Light Mode Palette */
+  --color-zyniq-light-bg: #FFFFFF;
+  --color-zyniq-light-text: #1A1A1A;
+  --color-zyniq-light-border: #E5E5E5;
+  --color-zyniq-light-card: #FFFFFF;
+  --color-zyniq-light-subtle: #FAFAFA;
+}
+
+/* Dynamic CSS Custom Properties for Light & Dark Mode */
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FAFAFA;
+  --text-primary: #1A1A1A;
+  --text-secondary: #555555;
+  --text-muted: #777777;
+  --border-subtle: #E5E5E5;
+  --border-strong: #D4D4D4;
+  --color-accent-red: #34A499;
+  --color-accent-red-hover: #2B8A80;
+  --color-accent-red-glow: rgba(52, 164, 153, 0.15);
+}
+
+.dark {
+  --bg-primary: #0A0A0A;
+  --bg-surface: #121212;
+  --bg-elevated: #181818;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CCCCCC;
+  --text-muted: #777777;
+  --border-subtle: #222222;
+  --border-strong: #333333;
+  --color-accent-red: #34A499;
+  --color-accent-red-hover: #2B8A80;
+  --color-accent-red-glow: rgba(52, 164, 153, 0.25);
+}
+
+/* Custom base typography */
+h1, h2, h3, .font-display {
+  font-family: var(--font-syne);
+}
+
+html {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+html:not(.dark) {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, pre, .font-technical {
+  font-family: var(--font-mono);
+}
+
+/* Brand Selection Styling */
+::selection {
+  background-color: #34A499;
+  color: #FFFFFF;
+}
+
+/* High-Contrast Scrollbar Styling - Adaptive for Light and Dark */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFFFFF;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #E5E5E5;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #34A499;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 3px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #34A499;
+}
+
+/* Focus and Interactive Utility Classes */
+.focus-zyniq:focus-visible {
+  outline: 2px solid #34A499;
+  outline-offset: 2px;
+}

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Z-OLLA Loading Screen</title>
+
+  <!-- Google Fonts used by Z-OLLA -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Reset & Base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0a0f1a;
+      color: #f5f5f5;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       SAMPLE UNDERLYING PAGE (Revealed after loading completes)
+       ══════════════════════════════════════════════════════════════ */
+    .demo-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+      background: radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.15), transparent 70%), #0a0f1a;
+    }
+
+    .demo-card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 12px;
+      padding: 2.5rem;
+      max-width: 680px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+    }
+
+    .demo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .demo-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #ffffff 40%, #93c5fd);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .demo-text {
+      color: #94a3b8;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .demo-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.8rem 1.8rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(37, 99, 235, 0.4);
+      transition: all 0.2s ease;
+    }
+    .demo-btn:hover {
+      background: #1d4ed8;
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(37, 99, 235, 0.6);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       Z-OLLA LOADER (Extracted from core/z-olla/frontend/components/Loader.tsx)
+       ══════════════════════════════════════════════════════════════ */
+    .zl-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #050505;
+      color: #f5f5f5;
+      font-family: 'Inter', system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: opacity 0.4s ease;
+    }
+
+    /* — Background layers — */
+    .zl-bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .zl-bg-vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, #050505 100%);
+    }
+
+    .zl-bg-scanline {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.04;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px,
+        rgba(59, 130, 246, 0.08) 2px, rgba(59, 130, 246, 0.08) 4px);
+    }
+
+    .zl-bg-glow {
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      width: min(500px, 90vw);
+      height: min(500px, 90vw);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: zlAmbientPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes zlAmbientPulse {
+      0%, 100% {
+        opacity: 0.6;
+        transform: translate(-50%, -50%) scale(1);
+      }
+      50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.15);
+      }
+    }
+
+    /* — Container — */
+    .zl-container {
+      text-align: center;
+      width: 90%;
+      max-width: 600px;
+      position: relative;
+      z-index: 2;
+      padding: 1rem;
+    }
+
+    /* — Z Sign Logo — */
+    .zl-logo-wrap {
+      margin-bottom: 0.1rem;
+      position: relative;
+      display: inline-block;
+    }
+
+    .zl-sign-svg {
+      width: clamp(70px, 15vw, 110px);
+      height: auto;
+      filter: drop-shadow(0 0 25px rgba(59, 130, 246, 0.35));
+    }
+
+    .zl-sign-path {
+      stroke: #ffffff;
+      fill: #3b82f6;
+      fill-opacity: 0;
+      stroke-dasharray: 3000;
+      stroke-dashoffset: 3000;
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      animation: zlDrawSign 2s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                 zlFillSign 1s ease-out 1.8s forwards;
+    }
+
+    .zl-sign-path--2 {
+      animation-delay: 0.6s, 2.0s;
+    }
+
+    @keyframes zlDrawSign {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes zlFillSign {
+      to {
+        fill-opacity: 1;
+        stroke-width: 0;
+      }
+    }
+
+    .zl-logo-ring {
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 0.5px solid rgba(59, 130, 246, 0.12);
+      animation: zlRingPulse 3s ease-in-out 1.8s infinite;
+      opacity: 0;
+    }
+
+    .zl-logo-ring--outer {
+      inset: -28px;
+      animation-delay: 2.2s;
+    }
+
+    @keyframes zlRingPulse {
+      0% {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      50% {
+        opacity: 0.5;
+        transform: scale(1.05);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+    }
+
+    /* — Wordmark — */
+    .zl-wordmark-wrap {
+      margin-bottom: 0.1rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    .zl-wordmark-svg {
+      width: clamp(260px, 65vw, 420px);
+      height: auto;
+      filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+      opacity: 0;
+      animation: zlFadeUp 0.4s ease-out 1.4s forwards;
+    }
+
+    .zl-wm-path {
+      stroke-dasharray: 6000;
+      stroke-dashoffset: 6000;
+      stroke-width: 15;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill-opacity: 0;
+      animation: zlDrawWM 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards,
+                 zlFillWM 1.2s ease-out 3.2s forwards;
+    }
+
+    .zl-wm-white {
+      stroke: #ffffff;
+      fill: #ffffff;
+    }
+
+    .zl-wm-blue {
+      stroke: #3b82f6;
+      fill: #3b82f6;
+    }
+
+    .zl-wm-path:nth-child(1) { animation-delay: 1.4s, 2.8s; }
+    .zl-wm-path:nth-child(2) { animation-delay: 1.5s, 2.8s; }
+    .zl-wm-path:nth-child(3) { animation-delay: 1.6s, 2.8s; }
+    .zl-wm-path:nth-child(4) { animation-delay: 1.7s, 2.8s; }
+    .zl-wm-path:nth-child(5) { animation-delay: 1.8s, 2.8s; }
+    .zl-wm-path:nth-child(6) { animation-delay: 1.9s, 2.8s; }
+
+    @keyframes zlDrawWM {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes zlFillWM {
+      to {
+        fill-opacity: 1;
+        stroke-width: 0;
+      }
+    }
+
+    /* — Brand text — */
+    .zl-brand-studio {
+      font-family: 'Orbitron', 'Inter', sans-serif;
+      font-size: clamp(0.7rem, 2.5vw, 1rem);
+      font-weight: 700;
+      letter-spacing: 0.5em;
+      color: #888888;
+      margin-bottom: 0.25rem;
+      opacity: 0;
+      animation: zlFadeUp 0.6s ease-out 3s forwards;
+    }
+
+    .zl-brand-sub {
+      font-size: clamp(0.55rem, 1.8vw, 0.7rem);
+      color: #888888;
+      opacity: 0.6;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: zlFadeUp 0.6s ease-out 3.2s forwards;
+    }
+
+    @keyframes zlFadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* — Terminal — */
+    .zl-terminal {
+      background: #0a0808;
+      border: 1px solid rgba(59, 130, 246, 0.15);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: zlFadeUp 0.5s ease-out 2s forwards;
+    }
+
+    .zl-terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(59, 130, 246, 0.06);
+      border-bottom: 1px solid rgba(59, 130, 246, 0.15);
+    }
+
+    .zl-terminal-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.3);
+    }
+    .zl-terminal-dot:nth-child(2) {
+      background: rgba(59, 130, 246, 0.2);
+    }
+    .zl-terminal-dot:nth-child(3) {
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .zl-terminal-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      color: #888888;
+      margin-left: auto;
+      letter-spacing: 0.05em;
+    }
+
+    .zl-terminal-body {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.6rem, 1.8vw, 0.7rem);
+      line-height: 1.7;
+      max-height: 200px;
+      overflow-y: hidden;
+    }
+
+    /* Terminal line animations */
+    .zl-terminal-line {
+      color: #888888;
+      opacity: 0;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .zl-terminal-line.zl-active {
+      animation: zlTypeLine 0.25s ease-out forwards;
+    }
+
+    .zl-terminal-line .ok {
+      color: #22c55e;
+    }
+    .zl-terminal-line .warn {
+      color: #eab308;
+    }
+    .zl-terminal-line .brand {
+      color: #3b82f6;
+      font-weight: 700;
+    }
+    .zl-terminal-line .dim {
+      color: #888888;
+      opacity: 0.5;
+    }
+
+    @keyframes zlTypeLine {
+      from {
+        opacity: 0;
+        transform: translateX(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    /* — Progress — */
+    .zl-progress-wrap {
+      width: 100%;
+      height: 3px;
+      background: rgba(59, 130, 246, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      opacity: 0;
+      animation: zlFadeUp 0.4s ease-out 2.2s forwards;
+    }
+
+    .zl-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3b82f6, #60a5fa);
+      border-radius: 2px;
+      transition: width 0.3s ease-out;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.5), 0 0 4px rgba(59, 130, 246, 0.8);
+    }
+
+    .zl-progress-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.75rem;
+      opacity: 0;
+      animation: zlFadeUp 0.4s ease-out 2.2s forwards;
+    }
+
+    .zl-progress-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.55rem, 1.6vw, 0.65rem);
+      color: #888888;
+    }
+
+    .zl-progress-version {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.5rem, 1.4vw, 0.6rem);
+      color: rgba(59, 130, 246, 0.4);
+    }
+
+    /* — Exit animation — */
+    .zl-done {
+      animation: zlLoaderExit 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      pointer-events: none;
+    }
+
+    @keyframes zlLoaderExit {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(0.96);
+        filter: blur(4px);
+      }
+    }
+
+    /* — Responsive adjustments — */
+    @media (min-width: 640px) {
+      .zl-terminal-body {
+        padding: 1rem 1.25rem;
+        max-height: 240px;
+      }
+    }
+
+    @media (min-width: 768px) {
+      .zl-container {
+        max-width: 650px;
+      }
+      .zl-terminal-body {
+        padding: 1.25rem 1.5rem;
+        font-size: 0.75rem;
+        max-height: 260px;
+      }
+      .zl-sign-svg {
+        width: 120px;
+      }
+      .zl-wordmark-svg {
+        width: 420px;
+      }
+    }
+
+    @media (max-width: 359px) {
+      .zl-sign-svg {
+        width: 80px;
+      }
+      .zl-wordmark-svg {
+        width: 280px;
+      }
+      .zl-brand-studio {
+        font-size: 0.75rem;
+        letter-spacing: 0.3em;
+      }
+      .zl-brand-sub {
+        font-size: 0.6rem;
+        margin-bottom: 1.5rem;
+      }
+      .zl-terminal-body {
+        font-size: 0.6rem;
+        padding: 0.6rem 0.8rem;
+      }
+    }
+
+    @media (max-height: 500px) and (orientation: landscape) {
+      .zl-container {
+        max-width: 80vw;
+      }
+      .zl-logo-wrap {
+        margin-bottom: 0;
+      }
+      .zl-sign-svg {
+        width: 60px;
+      }
+      .zl-wordmark-wrap {
+        margin-bottom: 0;
+      }
+      .zl-wordmark-svg {
+        width: 250px;
+      }
+      .zl-brand-studio {
+        font-size: 0.65rem;
+        margin-bottom: 0.1rem;
+      }
+      .zl-brand-sub {
+        font-size: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      .zl-terminal {
+        margin-bottom: 0.75rem;
+      }
+      .zl-terminal-body {
+        max-height: 100px;
+        font-size: 0.6rem;
+        padding: 0.5rem 0.75rem;
+        line-height: 1.4;
+      }
+      .zl-progress-footer {
+        margin-top: 0.4rem;
+      }
+      .zl-bg-glow, .zl-bg-scanline {
+        display: none;
+      }
+    }
+
+    /* — Accessibility: Reduced Motion — */
+    @media (prefers-reduced-motion: reduce) {
+      .zl-sign-path {
+        stroke-dashoffset: 0;
+        fill-opacity: 1;
+        stroke-width: 0;
+      }
+      .zl-wm-path {
+        stroke-dashoffset: 0;
+        fill-opacity: 1;
+        stroke-width: 0;
+      }
+      .zl-wordmark-svg,
+      .zl-brand-studio,
+      .zl-brand-sub,
+      .zl-terminal,
+      .zl-progress-wrap,
+      .zl-progress-footer {
+        opacity: 1;
+      }
+      .zl-bg-glow,
+      .zl-bg-scanline,
+      .zl-logo-ring {
+        display: none;
+      }
+    }
+
+    /* Floating replay control button for quick testing */
+    .replay-control {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100000;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      transition: all 0.2s ease;
+    }
+    .replay-control:hover {
+      background: #1e3a8a;
+      color: #ffffff;
+      border-color: #60a5fa;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       OPTIONAL: Content behind the loader that is revealed on finish
+       ══════════════════════════════════════════════════════════════ -->
+  <main class="demo-page">
+    <div class="demo-card">
+      <div class="demo-badge">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;"></span>
+        SYSTEMS READY
+      </div>
+      <h1 class="demo-title">TARGET APPLICATION</h1>
+      <p class="demo-text">
+        The Z-OLLA loading screen animation has finished and smoothly faded out. You can place your application content or landing page right here!
+      </p>
+      <button class="demo-btn" onclick="triggerLoaderReplay()">Replay Loader</button>
+    </div>
+  </main>
+
+  <button class="replay-control" onclick="triggerLoaderReplay()">⚡ Replay Animation</button>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       Z-OLLA LOADER OVERLAY
+       ══════════════════════════════════════════════════════════════ -->
+  <div id="zollaLoader" class="zl-overlay" role="status" aria-live="polite" aria-label="Loading">
+    <div class="zl-bg-grid"></div>
+    <div class="zl-bg-vignette"></div>
+    <div class="zl-bg-scanline"></div>
+    <div class="zl-bg-glow"></div>
+
+    <div class="zl-container">
+      <!-- Z Sign Logo -->
+      <div class="zl-logo-wrap">
+        <div class="zl-logo-ring"></div>
+        <div class="zl-logo-ring zl-logo-ring--outer"></div>
+        <svg class="zl-sign-svg" viewBox="-200 -200 1305 1209" xmlns="http://www.w3.org/2000/svg">
+          <path class="zl-sign-path" d="M768.056 372.62H896.556C879.556 353.62 903.111 388.25 715.056 147.62C668.556 88.1205 705.556 135.12 609.556 6.62048L437.056 3.62048C474.086 55.3364 701.056 372.62 701.056 372.62C701.056 372.62 713.094 371.745 768.056 372.62Z"/>
+          <path class="zl-sign-path zl-sign-path--2" d="M415.444 374.052C476.678 371.602 549.763 373.071 611.955 372.93C518.312 472.449 395.054 575.499 306.297 678.444C463.296 680.817 621.487 677.151 778.582 678.297C808.419 678.514 837.008 676.704 866.911 679.16C824.898 720.601 791.271 760.691 751.023 802.889C736.966 806.326 586.131 802.202 560.024 802.543C378.184 804.916 188.275 797.473 7.05566 804.546C53.6786 740.135 154.944 646.625 210.364 585.95C238.652 554.978 392.759 384.773 415.444 374.052Z"/>
+        </svg>
+      </div>
+
+      <!-- Full ZYNIQ Wordmark -->
+      <div class="zl-wordmark-wrap">
+        <svg class="zl-wordmark-svg" viewBox="550 700 3980 800" xmlns="http://www.w3.org/2000/svg">
+          <path class="zl-wm-path zl-wm-white" d="M2385.82 744.614C2408.16 743.513 2430.51 742.704 2452.87 742.201C2471.86 741.95 2499.27 741.25 2514.16 753.699C2552.67 785.895 2585.33 837.525 2617.86 878.086L2866.48 1186.32C2895.81 1222.24 2941.08 1284.2 2970.4 1313.75L2974.18 1317.51C2980.05 1280.4 2975.11 1202.67 2976.15 1160.37C2979.42 1026.94 2970.6 879.411 2976.39 747.114C3011.17 743.785 3081.97 744.94 3118.04 746.217C3120.01 768.349 3119.96 791.426 3119.78 813.667C3118.39 989.799 3120.84 1165.99 3119.31 1342.08C3118.83 1396.92 3103.46 1424.4 3055.02 1444.78C3020.2 1448.73 2911.42 1452.19 2885.25 1433.66C2823.77 1390.17 2752.03 1278.54 2701.28 1219.61C2634.72 1141.99 2574.16 1058.97 2508.6 980.605C2491.18 959.784 2449.34 895.597 2421.24 904.736C2418.05 914.651 2421.53 983.812 2421.44 1000.2C2420.66 1149.91 2424.45 1300.47 2421.72 1450.1L2280 1449.51L2279.96 1067.03C2280 997.355 2278.62 922.268 2285.07 852.801C2286.27 839.856 2296.63 814.761 2303.48 803.814C2325.74 768.193 2348.13 754.249 2385.82 744.614Z"/>
+          <path class="zl-wm-path zl-wm-white" d="M1420.77 735.101C1488.85 735.59 1559.45 735.115 1627.27 738.165C1645.34 755.717 1672.15 795.884 1689.95 816.602C1743.12 878.465 1815.14 981.187 1871.43 1036.64C1922.86 976.635 1974.65 909.909 2025.91 848.997C2055.45 813.898 2083.57 774.16 2114.69 740.664C2157 737.845 2249.54 736.168 2288.86 740.25C2275.6 758.632 2261.96 775.668 2247.85 793.309C2146.6 919.895 2042.3 1043.65 1938.85 1168.25C1939.35 1251.05 1942.59 1363.95 1937.88 1444.1C1888.68 1441.82 1838.07 1442.82 1788.71 1443.14L1788.68 1403.41C1789.08 1329.57 1787.86 1241.59 1792.82 1169.32C1695.62 1043.26 1570.94 911.791 1476.09 786.143C1445.47 822.641 1414.36 852.611 1380.64 885.93C1224.34 887.656 1061.87 881.528 904.805 883.424C873.597 883.804 709.702 884.904 691.862 880C694.566 867.141 796.398 755.004 811.657 738.892C853.415 733.647 965.467 736.093 1011.19 736.066C1147.72 736.67 1284.24 736.351 1420.77 735.101Z"/>
+          <path class="zl-wm-path zl-wm-blue" d="M1089.87 1019.21C1151.1 1016.76 1224.19 1018.23 1286.38 1018.09C1192.74 1117.61 1069.48 1220.66 980.723 1323.6C1137.72 1325.97 1295.91 1322.31 1453.01 1323.45C1482.84 1323.67 1511.43 1321.86 1541.34 1324.32C1499.32 1365.76 1465.7 1405.85 1425.45 1448.05C1411.39 1451.48 1260.56 1447.36 1234.45 1447.7C1052.61 1450.07 862.701 1442.63 681.481 1449.7C728.104 1385.29 829.37 1291.78 884.79 1231.11C913.078 1200.13 1067.18 1029.93 1089.87 1019.21Z"/>
+          <path class="zl-wm-path zl-wm-white" d="M3262.33 738.566C3303.32 738.811 3357.95 736.326 3397.21 740.841C3398.26 805.151 3401.42 1426.07 3394.62 1440.49L3388.39 1441.93C3343.53 1443.77 3298.94 1439.24 3253.75 1443.1C3253.48 1370.87 3247.63 754.102 3253.39 741.228L3262.33 738.566Z"/>
+          <path class="zl-wm-path zl-wm-blue" d="M4173.36 1443H4302C4284.98 1418.44 4308.56 1463.2 4120.3 1152.15C4073.75 1075.23 4110.79 1135.99 4014.69 969.878L3842 966C3879.07 1032.85 4106.29 1443 4106.29 1443C4106.29 1443 4118.34 1441.87 4173.36 1443Z"/>
+          <path class="zl-wm-path zl-wm-white" d="M4079.37 724.101L3780.89 724.798C3540.25 727.588 3509.51 840.97 3515.53 1063.24C3516.12 1085.18 3515.85 1107.73 3515.57 1130.4C3514.03 1259.07 3512.44 1391.56 3668.28 1437.09C3712.49 1449.55 3770.13 1448.52 3821.12 1447.6C3833.51 1447.38 3845.51 1447.17 3856.82 1447.16L4014.6 1444.64C4032.34 1444.65 4076.31 1444.64 4076.31 1444.64C4076.31 1444.64 4063.54 1422.32 3981.56 1291.21H3877.98C3809.54 1292.24 3780.89 1291.21 3711.32 1291.21C3687.05 1291.21 3664.37 1282.6 3657.92 1232.4C3648.65 1160.14 3648.85 960.374 3676.65 898.437C3694.65 882.662 3707.29 886.562 3728.31 878.726L3729.57 878.256C3806.73 876.848 3884.56 878.009 3962.39 879.171C4033.36 880.23 4104.34 881.29 4174.8 880.399C4272.16 879.166 4283.08 883.014 4283.08 972.192C4283.08 1003.88 4282.87 1051.77 4283.08 1078.6V1118.14C4283.36 1152.12 4283.08 1191.37 4283.08 1232.4C4283.08 1266.21 4283.08 1276.38 4231.18 1291.21C4250.03 1322.78 4328.5 1437.09 4328.5 1437.09C4355 1421.5 4401.86 1423.27 4401.86 1162.45C4401.86 1116.4 4401.86 951.839 4401.86 912.626C4401.86 738.291 4210.85 724.798 4079.37 724.101Z"/>
+        </svg>
+      </div>
+
+      <div class="zl-brand-studio">Z-OLLA</div>
+      <div class="zl-brand-sub">Private AI Infrastructure</div>
+
+      <!-- Terminal -->
+      <div class="zl-terminal">
+        <div class="zl-terminal-header">
+          <span class="zl-terminal-dot"></span>
+          <span class="zl-terminal-dot"></span>
+          <span class="zl-terminal-dot"></span>
+          <span class="zl-terminal-title">z-olla-boot.sh</span>
+        </div>
+        <div class="zl-terminal-body" id="zlTerminalBody"></div>
+      </div>
+
+      <!-- Progress -->
+      <div class="zl-progress-wrap">
+        <div class="zl-progress-bar" id="zlProgressBar"></div>
+      </div>
+      <div class="zl-progress-footer">
+        <div class="zl-progress-label" id="zlProgressLabel">Initializing...</div>
+        <div class="zl-progress-version">v2.2.0</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Boot sequence messages exactly matching Z-OLLA production
+    const BOOT_LINES = [
+      { t: '<span class="dim">$</span> z-olla --boot --env production' },
+      { t: '[Z-OLLA] Booting kernel v2.2.0 ...' },
+      { t: '[AUTH]  Keycloak SSO ................ <span class="ok">OK</span>' },
+      { t: '[BRAIN] Gateway :8700 .............. <span class="ok">OK</span>' },
+      { t: '[DB]   PostgreSQL .................. <span class="ok">OK</span>' },
+      { t: '[DB]   Redis cache ................. <span class="ok">OK</span>' },
+      { t: '[AI]   Ollama local LLM ............ <span class="ok">OK</span>' },
+      { t: '[AI]   LiteLLM proxy ............... <span class="ok">OK</span>' },
+      { t: '[AI]   Model registry .............. <span class="ok">OK</span>' },
+      { t: '[API]  REST endpoints .............. <span class="ok">OK</span>' },
+      { t: '[CDN]  Asset integrity (SRI) ....... <span class="ok">VERIFIED</span>' },
+      { t: '[Z-OLLA] All systems operational     <span class="brand">&#9632; LAUNCH</span>' }
+    ];
+
+    let currentTimer = null;
+    let initialStartTimer = null;
+
+    /**
+     * Initializes and runs the loader sequence.
+     * @param {Object} options Configuration options
+     * @param {boolean} options.useSessionStorage If true, won't run again if seen in current session
+     * @param {Function} options.onComplete Callback fired when loader exit animation completes
+     */
+    function runZollaLoader(options = {}) {
+      const {
+        useSessionStorage = false,
+        onComplete = null
+      } = options;
+
+      const container = document.getElementById('zollaLoader');
+      const term = document.getElementById('zlTerminalBody');
+      const bar = document.getElementById('zlProgressBar');
+      const lbl = document.getElementById('zlProgressLabel');
+
+      if (!container || !term || !bar || !lbl) return;
+
+      // Optional check: skip if already seen in this session
+      if (useSessionStorage && sessionStorage.getItem('zolla_loader_seen')) {
+        container.style.display = 'none';
+        if (typeof onComplete === 'function') onComplete();
+        return;
+      }
+
+      // Reset state for new run
+      clearTimeout(initialStartTimer);
+      clearTimeout(currentTimer);
+      container.classList.remove('zl-done');
+      container.style.display = 'flex';
+      term.innerHTML = '';
+      bar.style.width = '0%';
+      lbl.textContent = 'Initializing...';
+
+      let i = 0;
+
+      function step() {
+        if (i >= BOOT_LINES.length) {
+          bar.style.width = '100%';
+          lbl.textContent = '100% — Systems online';
+
+          currentTimer = setTimeout(() => {
+            container.classList.add('zl-done');
+            if (useSessionStorage) {
+              sessionStorage.setItem('zolla_loader_seen', '1');
+            }
+
+            // Remove or hide overlay after exit animation completes (0.8s)
+            setTimeout(() => {
+              container.style.display = 'none';
+              if (typeof onComplete === 'function') onComplete();
+            }, 800);
+          }, 900);
+          return;
+        }
+
+        const line = BOOT_LINES[i];
+        const el = document.createElement('div');
+        el.className = 'zl-terminal-line zl-active';
+        el.innerHTML = line.t;
+        term.appendChild(el);
+        term.scrollTop = term.scrollHeight;
+
+        const p = Math.round(((i + 1) / BOOT_LINES.length) * 100);
+        bar.style.width = p + '%';
+        lbl.textContent = p + '% — ' + line.t.replace(/<[^>]*>/g, '').replace(/^\$\s*/, '').trim();
+
+        i++;
+        currentTimer = setTimeout(step, i <= 2 ? 260 : 160);
+      }
+
+      // 2400ms delay to let the initial SVG stroke draw and wordmark animations complete
+      initialStartTimer = setTimeout(step, 2400);
+    }
+
+    // Helper to replay from button
+    function triggerLoaderReplay() {
+      // Re-trigger CSS animations on SVG elements by cloning or re-mounting container
+      const container = document.getElementById('zollaLoader');
+      const clone = container.cloneNode(true);
+      container.parentNode.replaceChild(clone, container);
+      runZollaLoader({ useSessionStorage: false });
+    }
+
+    // Run automatically on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      runZollaLoader({
+        useSessionStorage: false // set to true if you want it to display only once per browser session
+      });
+    });
+  </script>
+</body>
+</html>

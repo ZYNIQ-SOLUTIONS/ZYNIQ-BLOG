@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZYNIQ Blog – Synthetic Intelligence, Systems & Design</title>
+    <meta name="description" content="Official editorial and research publication by ZYNIQ Solutions. Exploring synthetic intelligence, autonomous systems, cloud architecture, and industrial design." />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="ZYNIQ Blog – Synthetic Intelligence, Systems & Design" />
+    <meta property="og:description" content="Official editorial and research publication by ZYNIQ Solutions. Exploring synthetic intelligence, autonomous systems, cloud architecture, and industrial design." />
+    <meta property="og:site_name" content="ZYNIQ Blog" />
+    
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@zyniq_solutions" />
+    <meta name="twitter:title" content="ZYNIQ Blog – Synthetic Intelligence, Systems & Design" />
+    <meta name="twitter:description" content="Official editorial and research publication by ZYNIQ Solutions. Exploring synthetic intelligence, autonomous systems, cloud architecture, and industrial design." />
+
+    <!-- Google Fonts: Syne (Brand/Headlines), Plus Jakarta Sans (Body), JetBrains Mono (Technical) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Schema.org JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "ZYNIQ Blog",
+      "headline": "Synthetic + Unique + IQ Editorial Publication",
+      "description": "Futuristic intelligence with a distinctive edge across software, autonomous robotics, and cloud systems.",
+      "publisher": {
+        "@type": "Organization",
+        "name": "ZYNIQ Solutions",
+        "url": "https://github.com/ZYNIQ-AI-Driven-Development-Firm",
+        "sameAs": [
+          "https://www.instagram.com/zyniq_solutions/",
+          "https://www.tiktok.com/@zyniq.solutions",
+          "https://x.com/zyniq_solutions",
+          "https://www.youtube.com/@zyniq.solutions",
+          "https://www.linkedin.com/company/zyniq-solutions",
+          "https://github.com/ZYNIQ-AI-Driven-Development-Firm",
+          "https://patreon.com/ZYNIQSolutions",
+          "https://www.twitch.tv/zyniqsolutions"
+        ]
+      }
+    }
+    </script>
+
+    <script>
+      // Suppress Vite HMR WebSocket transport warnings and errors when HMR is disabled in cloud sandboxes
+      window.addEventListener('error', function (e) {
+        if (
+          (e.filename && e.filename.includes('@vite/client')) ||
+          (e.message && (e.message.includes('WebSocket') || e.message.includes('createWebSocketModuleRunnerTransport')))
+        ) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+          return true;
+        }
+      });
+      window.addEventListener('unhandledrejection', function (e) {
+        var str = String(e.reason || '');
+        if (str.includes('WebSocket') || str.includes('createWebSocketModuleRunnerTransport') || str.includes('@vite/client')) {
+          e.stopImmediatePropagation();
+          e.preventDefault();
+        }
+      });
+    </script>
+  </head>
+  <body class="bg-[#0A0A0A] text-[#EEEEEE] font-sans selection:bg-[#34A499] selection:text-white antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
